@@ -7,7 +7,7 @@ app = func.FunctionApp(http_auth_level=func.AuthLevel.ANONYMOUS)
 
 @app.route(route="visitorcounter")
 def visitorcounter(req: func.HttpRequest) -> func.HttpResponse:
-    logging.info('Visitor counter function processed a request.')
+    logging.info('Visitor counter function processed a request. - v2')
 
     connection_string = os.environ["COSMOS_CONNECTION_STRING"]
     table_name = "visitorcounter"
