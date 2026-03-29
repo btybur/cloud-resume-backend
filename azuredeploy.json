@@ -1,0 +1,1188 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "profiles_cdn_profile_crp_name": {
+            "defaultValue": "cdn-profile-crp",
+            "type": "String"
+        },
+        "serverfarms_ASP_CRPRG_b01e_name": {
+            "defaultValue": "ASP-CRPRG-b01e",
+            "type": "String"
+        },
+        "dnszones_brycetyburski_com_name": {
+            "defaultValue": "brycetyburski.com",
+            "type": "String"
+        },
+        "dnszones_bryce_tyburski_com_name": {
+            "defaultValue": "bryce-tyburski.com",
+            "type": "String"
+        },
+        "sites_brycetyburski_resume_func_name": {
+            "defaultValue": "brycetyburski-resume-func",
+            "type": "String"
+        },
+        "storageAccounts_crpstorageaccount001_name": {
+            "defaultValue": "crpstorageaccount001",
+            "type": "String"
+        },
+        "databaseAccounts_brycetyburski_resume_cosmos_name": {
+            "defaultValue": "brycetyburski-resume-cosmos",
+            "type": "String"
+        }
+    },
+    "variables": {},
+    "resources": [
+        {
+            "type": "Microsoft.Cdn/profiles",
+            "apiVersion": "2025-09-01-preview",
+            "name": "[parameters('profiles_cdn_profile_crp_name')]",
+            "location": "Global",
+            "sku": {
+                "name": "Standard_Microsoft"
+            },
+            "kind": "cdn",
+            "properties": {}
+        },
+        {
+            "type": "Microsoft.DocumentDB/databaseAccounts",
+            "apiVersion": "2025-11-01-preview",
+            "name": "[parameters('databaseAccounts_brycetyburski_resume_cosmos_name')]",
+            "location": "East US",
+            "kind": "GlobalDocumentDB",
+            "identity": {
+                "type": "None"
+            },
+            "properties": {
+                "publicNetworkAccess": "Enabled",
+                "enableAutomaticFailover": true,
+                "enableMultipleWriteLocations": false,
+                "isVirtualNetworkFilterEnabled": false,
+                "virtualNetworkRules": [],
+                "disableKeyBasedMetadataWriteAccess": false,
+                "enableFreeTier": false,
+                "enableAnalyticalStorage": false,
+                "analyticalStorageConfiguration": {
+                    "schemaType": "WellDefined"
+                },
+                "databaseAccountOfferType": "Standard",
+                "capacityMode": "Provisioned",
+                "defaultIdentity": "FirstPartyIdentity",
+                "networkAclBypass": "None",
+                "disableLocalAuth": false,
+                "enablePartitionMerge": false,
+                "enablePerRegionPerPartitionAutoscale": true,
+                "enableBurstCapacity": false,
+                "enablePriorityBasedExecution": false,
+                "defaultPriorityLevel": "High",
+                "minimalTlsVersion": "Tls12",
+                "consistencyPolicy": {
+                    "defaultConsistencyLevel": "Eventual",
+                    "maxIntervalInSeconds": 5,
+                    "maxStalenessPrefix": 100
+                },
+                "locations": [
+                    {
+                        "locationName": "East US",
+                        "failoverPriority": 0,
+                        "isZoneRedundant": false
+                    }
+                ],
+                "cors": [],
+                "capabilities": [
+                    {
+                        "name": "EnableTable"
+                    }
+                ],
+                "ipRules": [],
+                "backupPolicy": {
+                    "type": "Periodic",
+                    "periodicModeProperties": {
+                        "backupIntervalInMinutes": 240,
+                        "backupRetentionIntervalInHours": 8,
+                        "backupStorageRedundancy": "Geo"
+                    }
+                },
+                "networkAclBypassResourceIds": [],
+                "diagnosticLogSettings": {
+                    "enableFullTextQuery": "None"
+                }
+            }
+        },
+        {
+            "type": "Microsoft.Network/dnszones",
+            "apiVersion": "2023-07-01-preview",
+            "name": "[parameters('dnszones_brycetyburski_com_name')]",
+            "location": "global",
+            "properties": {
+                "zoneType": "Public"
+            }
+        },
+        {
+            "type": "Microsoft.Network/dnszones",
+            "apiVersion": "2023-07-01-preview",
+            "name": "[parameters('dnszones_bryce_tyburski_com_name')]",
+            "location": "global",
+            "properties": {
+                "zoneType": "Public"
+            }
+        },
+        {
+            "type": "Microsoft.Storage/storageAccounts",
+            "apiVersion": "2025-06-01",
+            "name": "[parameters('storageAccounts_crpstorageaccount001_name')]",
+            "location": "eastus",
+            "tags": {
+                "CRP-SAs": ""
+            },
+            "sku": {
+                "name": "Standard_RAGRS",
+                "tier": "Standard"
+            },
+            "kind": "StorageV2",
+            "properties": {
+                "dnsEndpointType": "Standard",
+                "defaultToOAuthAuthentication": false,
+                "publicNetworkAccess": "Enabled",
+                "allowCrossTenantReplication": false,
+                "minimumTlsVersion": "TLS1_2",
+                "allowBlobPublicAccess": true,
+                "allowSharedKeyAccess": true,
+                "networkAcls": {
+                    "ipv6Rules": [],
+                    "bypass": "AzureServices",
+                    "virtualNetworkRules": [],
+                    "ipRules": [],
+                    "defaultAction": "Allow"
+                },
+                "supportsHttpsTrafficOnly": true,
+                "encryption": {
+                    "requireInfrastructureEncryption": false,
+                    "services": {
+                        "file": {
+                            "keyType": "Account",
+                            "enabled": true
+                        },
+                        "blob": {
+                            "keyType": "Account",
+                            "enabled": true
+                        }
+                    },
+                    "keySource": "Microsoft.Storage"
+                },
+                "accessTier": "Hot"
+            }
+        },
+        {
+            "type": "Microsoft.Web/serverfarms",
+            "apiVersion": "2024-11-01",
+            "name": "[parameters('serverfarms_ASP_CRPRG_b01e_name')]",
+            "location": "East US",
+            "tags": {
+                "project": "cloud-resume",
+                "environment": "dev",
+                "resource": "function-app"
+            },
+            "sku": {
+                "name": "FC1",
+                "tier": "FlexConsumption",
+                "size": "FC1",
+                "family": "FC",
+                "capacity": 0
+            },
+            "kind": "functionapp",
+            "properties": {
+                "perSiteScaling": false,
+                "elasticScaleEnabled": false,
+                "maximumElasticWorkerCount": 1,
+                "isSpot": false,
+                "reserved": true,
+                "isXenon": false,
+                "hyperV": false,
+                "targetWorkerCount": 0,
+                "targetWorkerSizeId": 0,
+                "zoneRedundant": false,
+                "asyncScalingEnabled": false
+            }
+        },
+        {
+            "type": "Microsoft.Cdn/profiles/endpoints",
+            "apiVersion": "2025-09-01-preview",
+            "name": "[concat(parameters('profiles_cdn_profile_crp_name'), '/cdn-endpoint-crp')]",
+            "location": "Global",
+            "dependsOn": [
+                "[resourceId('Microsoft.Cdn/profiles', parameters('profiles_cdn_profile_crp_name'))]"
+            ],
+            "properties": {
+                "originHostHeader": "crpstorageaccount001.z13.web.core.windows.net",
+                "contentTypesToCompress": [
+                    "application/eot",
+                    "application/font",
+                    "application/font-sfnt",
+                    "application/javascript",
+                    "application/json",
+                    "application/opentype",
+                    "application/otf",
+                    "application/pkcs7-mime",
+                    "application/truetype",
+                    "application/ttf",
+                    "application/vnd.ms-fontobject",
+                    "application/xhtml+xml",
+                    "application/xml",
+                    "application/xml+rss",
+                    "application/x-font-opentype",
+                    "application/x-font-truetype",
+                    "application/x-font-ttf",
+                    "application/x-httpd-cgi",
+                    "application/x-javascript",
+                    "application/x-mpegurl",
+                    "application/x-opentype",
+                    "application/x-otf",
+                    "application/x-perl",
+                    "application/x-ttf",
+                    "font/eot",
+                    "font/ttf",
+                    "font/otf",
+                    "font/opentype",
+                    "image/svg+xml",
+                    "text/css",
+                    "text/csv",
+                    "text/html",
+                    "text/javascript",
+                    "text/js",
+                    "text/plain",
+                    "text/richtext",
+                    "text/tab-separated-values",
+                    "text/xml",
+                    "text/x-script",
+                    "text/x-component",
+                    "text/x-java-source"
+                ],
+                "isCompressionEnabled": true,
+                "isHttpAllowed": true,
+                "isHttpsAllowed": true,
+                "queryStringCachingBehavior": "IgnoreQueryString",
+                "origins": [
+                    {
+                        "name": "default-origin-98ef747a",
+                        "properties": {
+                            "hostName": "crpstorageaccount001.z13.web.core.windows.net",
+                            "priority": 1,
+                            "weight": 1000,
+                            "enabled": true
+                        }
+                    }
+                ],
+                "originGroups": [],
+                "geoFilters": [],
+                "deliveryPolicy": {
+                    "rules": [
+                        {
+                            "name": "RedirectToHTTPS",
+                            "order": 1,
+                            "conditions": [
+                                {
+                                    "name": "RequestScheme",
+                                    "parameters": {
+                                        "typeName": "DeliveryRuleRequestSchemeConditionParameters",
+                                        "matchValues": [
+                                            "HTTP"
+                                        ],
+                                        "operator": "Equal",
+                                        "negateCondition": false,
+                                        "transforms": []
+                                    }
+                                }
+                            ],
+                            "actions": [
+                                {
+                                    "name": "UrlRedirect",
+                                    "parameters": {
+                                        "typeName": "DeliveryRuleUrlRedirectActionParameters",
+                                        "redirectType": "PermanentRedirect",
+                                        "destinationProtocol": "Https"
+                                    }
+                                }
+                            ]
+                        }
+                    ]
+                }
+            }
+        },
+        {
+            "type": "Microsoft.DocumentDB/databaseAccounts/cassandraRoleDefinitions",
+            "apiVersion": "2025-11-01-preview",
+            "name": "[concat(parameters('databaseAccounts_brycetyburski_resume_cosmos_name'), '/00000000-0000-0000-0000-000000000003')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.DocumentDB/databaseAccounts', parameters('databaseAccounts_brycetyburski_resume_cosmos_name'))]"
+            ],
+            "properties": {
+                "roleName": "Cosmos DB Cassandra Built-in Data Reader",
+                "type": "BuiltInRole",
+                "assignableScopes": [
+                    "[resourceId('Microsoft.DocumentDB/databaseAccounts', parameters('databaseAccounts_brycetyburski_resume_cosmos_name'))]"
+                ],
+                "permissions": [
+                    {
+                        "dataActions": [
+                            "Microsoft.DocumentDB/databaseAccounts/readMetadata",
+                            "Microsoft.DocumentDB/databaseAccounts/throughputSettings/read",
+                            "Microsoft.DocumentDB/databaseAccounts/cassandra/containers/executeQuery",
+                            "Microsoft.DocumentDB/databaseAccounts/cassandra/containers/readChangeFeed",
+                            "Microsoft.DocumentDB/databaseAccounts/cassandra/containers/entities/read"
+                        ],
+                        "notDataActions": []
+                    }
+                ]
+            }
+        },
+        {
+            "type": "Microsoft.DocumentDB/databaseAccounts/cassandraRoleDefinitions",
+            "apiVersion": "2025-11-01-preview",
+            "name": "[concat(parameters('databaseAccounts_brycetyburski_resume_cosmos_name'), '/00000000-0000-0000-0000-000000000004')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.DocumentDB/databaseAccounts', parameters('databaseAccounts_brycetyburski_resume_cosmos_name'))]"
+            ],
+            "properties": {
+                "roleName": "Cosmos DB Cassandra Built-in Data Contributor",
+                "type": "BuiltInRole",
+                "assignableScopes": [
+                    "[resourceId('Microsoft.DocumentDB/databaseAccounts', parameters('databaseAccounts_brycetyburski_resume_cosmos_name'))]"
+                ],
+                "permissions": [
+                    {
+                        "dataActions": [
+                            "Microsoft.DocumentDB/databaseAccounts/readMetadata",
+                            "Microsoft.DocumentDB/databaseAccounts/throughputSettings/read",
+                            "Microsoft.DocumentDB/databaseAccounts/throughputSettings/write",
+                            "Microsoft.DocumentDB/databaseAccounts/cassandra/*",
+                            "Microsoft.DocumentDB/databaseAccounts/cassandra/write",
+                            "Microsoft.DocumentDB/databaseAccounts/cassandra/delete",
+                            "Microsoft.DocumentDB/databaseAccounts/cassandra/containers/*",
+                            "Microsoft.DocumentDB/databaseAccounts/cassandra/containers/entities/*"
+                        ],
+                        "notDataActions": []
+                    }
+                ]
+            }
+        },
+        {
+            "type": "Microsoft.DocumentDB/databaseAccounts/gremlinRoleDefinitions",
+            "apiVersion": "2025-11-01-preview",
+            "name": "[concat(parameters('databaseAccounts_brycetyburski_resume_cosmos_name'), '/00000000-0000-0000-0000-000000000003')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.DocumentDB/databaseAccounts', parameters('databaseAccounts_brycetyburski_resume_cosmos_name'))]"
+            ],
+            "properties": {
+                "roleName": "Cosmos DB Gremlin Built-in Data Reader",
+                "type": "BuiltInRole",
+                "assignableScopes": [
+                    "[resourceId('Microsoft.DocumentDB/databaseAccounts', parameters('databaseAccounts_brycetyburski_resume_cosmos_name'))]"
+                ],
+                "permissions": [
+                    {
+                        "dataActions": [
+                            "Microsoft.DocumentDB/databaseAccounts/readMetadata",
+                            "Microsoft.DocumentDB/databaseAccounts/throughputSettings/read",
+                            "Microsoft.DocumentDB/databaseAccounts/gremlin/containers/executeQuery",
+                            "Microsoft.DocumentDB/databaseAccounts/gremlin/containers/readChangeFeed",
+                            "Microsoft.DocumentDB/databaseAccounts/gremlin/containers/entities/read"
+                        ],
+                        "notDataActions": []
+                    }
+                ]
+            }
+        },
+        {
+            "type": "Microsoft.DocumentDB/databaseAccounts/gremlinRoleDefinitions",
+            "apiVersion": "2025-11-01-preview",
+            "name": "[concat(parameters('databaseAccounts_brycetyburski_resume_cosmos_name'), '/00000000-0000-0000-0000-000000000004')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.DocumentDB/databaseAccounts', parameters('databaseAccounts_brycetyburski_resume_cosmos_name'))]"
+            ],
+            "properties": {
+                "roleName": "Cosmos DB Gremlin Built-in Data Contributor",
+                "type": "BuiltInRole",
+                "assignableScopes": [
+                    "[resourceId('Microsoft.DocumentDB/databaseAccounts', parameters('databaseAccounts_brycetyburski_resume_cosmos_name'))]"
+                ],
+                "permissions": [
+                    {
+                        "dataActions": [
+                            "Microsoft.DocumentDB/databaseAccounts/readMetadata",
+                            "Microsoft.DocumentDB/databaseAccounts/throughputSettings/read",
+                            "Microsoft.DocumentDB/databaseAccounts/throughputSettings/write",
+                            "Microsoft.DocumentDB/databaseAccounts/gremlin/*",
+                            "Microsoft.DocumentDB/databaseAccounts/gremlin/write",
+                            "Microsoft.DocumentDB/databaseAccounts/gremlin/delete",
+                            "Microsoft.DocumentDB/databaseAccounts/gremlin/containers/*",
+                            "Microsoft.DocumentDB/databaseAccounts/gremlin/containers/entities/*"
+                        ],
+                        "notDataActions": []
+                    }
+                ]
+            }
+        },
+        {
+            "type": "Microsoft.DocumentDB/databaseAccounts/mongoMIRoleDefinitions",
+            "apiVersion": "2025-11-01-preview",
+            "name": "[concat(parameters('databaseAccounts_brycetyburski_resume_cosmos_name'), '/00000000-0000-0000-0000-000000000003')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.DocumentDB/databaseAccounts', parameters('databaseAccounts_brycetyburski_resume_cosmos_name'))]"
+            ],
+            "properties": {
+                "roleName": "Cosmos DB Mongo Built-in Data Reader",
+                "type": "BuiltInRole",
+                "assignableScopes": [
+                    "[resourceId('Microsoft.DocumentDB/databaseAccounts', parameters('databaseAccounts_brycetyburski_resume_cosmos_name'))]"
+                ],
+                "permissions": [
+                    {
+                        "dataActions": [
+                            "Microsoft.DocumentDB/databaseAccounts/readMetadata",
+                            "Microsoft.DocumentDB/databaseAccounts/throughputSettings/read",
+                            "Microsoft.DocumentDB/databaseAccounts/mongoMI/containers/executeQuery",
+                            "Microsoft.DocumentDB/databaseAccounts/mongoMI/containers/readChangeFeed",
+                            "Microsoft.DocumentDB/databaseAccounts/mongoMI/containers/entities/read"
+                        ],
+                        "notDataActions": []
+                    }
+                ]
+            }
+        },
+        {
+            "type": "Microsoft.DocumentDB/databaseAccounts/mongoMIRoleDefinitions",
+            "apiVersion": "2025-11-01-preview",
+            "name": "[concat(parameters('databaseAccounts_brycetyburski_resume_cosmos_name'), '/00000000-0000-0000-0000-000000000004')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.DocumentDB/databaseAccounts', parameters('databaseAccounts_brycetyburski_resume_cosmos_name'))]"
+            ],
+            "properties": {
+                "roleName": "Cosmos DB Mongo Built-in Data Contributor",
+                "type": "BuiltInRole",
+                "assignableScopes": [
+                    "[resourceId('Microsoft.DocumentDB/databaseAccounts', parameters('databaseAccounts_brycetyburski_resume_cosmos_name'))]"
+                ],
+                "permissions": [
+                    {
+                        "dataActions": [
+                            "Microsoft.DocumentDB/databaseAccounts/readMetadata",
+                            "Microsoft.DocumentDB/databaseAccounts/throughputSettings/read",
+                            "Microsoft.DocumentDB/databaseAccounts/throughputSettings/write",
+                            "Microsoft.DocumentDB/databaseAccounts/mongoMI/*",
+                            "Microsoft.DocumentDB/databaseAccounts/mongoMI/write",
+                            "Microsoft.DocumentDB/databaseAccounts/mongoMI/delete",
+                            "Microsoft.DocumentDB/databaseAccounts/mongoMI/containers/*",
+                            "Microsoft.DocumentDB/databaseAccounts/mongoMI/containers/entities/*"
+                        ],
+                        "notDataActions": []
+                    }
+                ]
+            }
+        },
+        {
+            "type": "Microsoft.DocumentDB/databaseAccounts/sqlRoleDefinitions",
+            "apiVersion": "2025-11-01-preview",
+            "name": "[concat(parameters('databaseAccounts_brycetyburski_resume_cosmos_name'), '/00000000-0000-0000-0000-000000000001')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.DocumentDB/databaseAccounts', parameters('databaseAccounts_brycetyburski_resume_cosmos_name'))]"
+            ],
+            "properties": {
+                "roleName": "Cosmos DB Built-in Data Reader",
+                "type": "BuiltInRole",
+                "assignableScopes": [
+                    "[resourceId('Microsoft.DocumentDB/databaseAccounts', parameters('databaseAccounts_brycetyburski_resume_cosmos_name'))]"
+                ],
+                "permissions": [
+                    {
+                        "dataActions": [
+                            "Microsoft.DocumentDB/databaseAccounts/readMetadata",
+                            "Microsoft.DocumentDB/databaseAccounts/sqlDatabases/containers/executeQuery",
+                            "Microsoft.DocumentDB/databaseAccounts/sqlDatabases/containers/readChangeFeed",
+                            "Microsoft.DocumentDB/databaseAccounts/sqlDatabases/containers/items/read"
+                        ],
+                        "notDataActions": []
+                    }
+                ]
+            }
+        },
+        {
+            "type": "Microsoft.DocumentDB/databaseAccounts/sqlRoleDefinitions",
+            "apiVersion": "2025-11-01-preview",
+            "name": "[concat(parameters('databaseAccounts_brycetyburski_resume_cosmos_name'), '/00000000-0000-0000-0000-000000000002')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.DocumentDB/databaseAccounts', parameters('databaseAccounts_brycetyburski_resume_cosmos_name'))]"
+            ],
+            "properties": {
+                "roleName": "Cosmos DB Built-in Data Contributor",
+                "type": "BuiltInRole",
+                "assignableScopes": [
+                    "[resourceId('Microsoft.DocumentDB/databaseAccounts', parameters('databaseAccounts_brycetyburski_resume_cosmos_name'))]"
+                ],
+                "permissions": [
+                    {
+                        "dataActions": [
+                            "Microsoft.DocumentDB/databaseAccounts/readMetadata",
+                            "Microsoft.DocumentDB/databaseAccounts/sqlDatabases/containers/*",
+                            "Microsoft.DocumentDB/databaseAccounts/sqlDatabases/containers/items/*"
+                        ],
+                        "notDataActions": []
+                    }
+                ]
+            }
+        },
+        {
+            "type": "Microsoft.DocumentDB/databaseAccounts/tableRoleDefinitions",
+            "apiVersion": "2025-11-01-preview",
+            "name": "[concat(parameters('databaseAccounts_brycetyburski_resume_cosmos_name'), '/00000000-0000-0000-0000-000000000001')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.DocumentDB/databaseAccounts', parameters('databaseAccounts_brycetyburski_resume_cosmos_name'))]"
+            ],
+            "properties": {
+                "roleName": "Cosmos DB Built-in Data Reader",
+                "type": "BuiltInRole",
+                "assignableScopes": [
+                    "[resourceId('Microsoft.DocumentDB/databaseAccounts', parameters('databaseAccounts_brycetyburski_resume_cosmos_name'))]"
+                ],
+                "permissions": [
+                    {
+                        "dataActions": [
+                            "Microsoft.DocumentDB/databaseAccounts/readMetadata",
+                            "Microsoft.DocumentDB/databaseAccounts/tables/containers/executeQuery",
+                            "Microsoft.DocumentDB/databaseAccounts/tables/containers/readChangeFeed",
+                            "Microsoft.DocumentDB/databaseAccounts/tables/containers/entities/read"
+                        ],
+                        "notDataActions": []
+                    }
+                ]
+            }
+        },
+        {
+            "type": "Microsoft.DocumentDB/databaseAccounts/tableRoleDefinitions",
+            "apiVersion": "2025-11-01-preview",
+            "name": "[concat(parameters('databaseAccounts_brycetyburski_resume_cosmos_name'), '/00000000-0000-0000-0000-000000000002')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.DocumentDB/databaseAccounts', parameters('databaseAccounts_brycetyburski_resume_cosmos_name'))]"
+            ],
+            "properties": {
+                "roleName": "Cosmos DB Built-in Data Contributor",
+                "type": "BuiltInRole",
+                "assignableScopes": [
+                    "[resourceId('Microsoft.DocumentDB/databaseAccounts', parameters('databaseAccounts_brycetyburski_resume_cosmos_name'))]"
+                ],
+                "permissions": [
+                    {
+                        "dataActions": [
+                            "Microsoft.DocumentDB/databaseAccounts/readMetadata",
+                            "Microsoft.DocumentDB/databaseAccounts/tables/*",
+                            "Microsoft.DocumentDB/databaseAccounts/tables/containers/*",
+                            "Microsoft.DocumentDB/databaseAccounts/tables/containers/entities/*"
+                        ],
+                        "notDataActions": []
+                    }
+                ]
+            }
+        },
+        {
+            "type": "Microsoft.DocumentDB/databaseAccounts/tables",
+            "apiVersion": "2025-11-01-preview",
+            "name": "[concat(parameters('databaseAccounts_brycetyburski_resume_cosmos_name'), '/visitorcounter')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.DocumentDB/databaseAccounts', parameters('databaseAccounts_brycetyburski_resume_cosmos_name'))]"
+            ],
+            "properties": {
+                "resource": {
+                    "id": "visitorcounter"
+                }
+            }
+        },
+        {
+            "type": "Microsoft.Network/dnszones/CNAME",
+            "apiVersion": "2023-07-01-preview",
+            "name": "[concat(parameters('dnszones_brycetyburski_com_name'), '/cdnverify.www')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Network/dnszones', parameters('dnszones_brycetyburski_com_name'))]"
+            ],
+            "properties": {
+                "TTL": 3600,
+                "CNAMERecord": {
+                    "cname": "cdnverify.cdn-endpoint-crp.azureedge.net"
+                },
+                "targetResource": {},
+                "trafficManagementProfile": {}
+            }
+        },
+        {
+            "type": "Microsoft.Network/dnszones/NS",
+            "apiVersion": "2023-07-01-preview",
+            "name": "[concat(parameters('dnszones_brycetyburski_com_name'), '/@')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Network/dnszones', parameters('dnszones_brycetyburski_com_name'))]"
+            ],
+            "properties": {
+                "TTL": 172800,
+                "NSRecords": [
+                    {
+                        "nsdname": "ns1-32.azure-dns.com."
+                    },
+                    {
+                        "nsdname": "ns2-32.azure-dns.net."
+                    },
+                    {
+                        "nsdname": "ns3-32.azure-dns.org."
+                    },
+                    {
+                        "nsdname": "ns4-32.azure-dns.info."
+                    }
+                ],
+                "targetResource": {},
+                "trafficManagementProfile": {}
+            }
+        },
+        {
+            "type": "Microsoft.Network/dnszones/NS",
+            "apiVersion": "2023-07-01-preview",
+            "name": "[concat(parameters('dnszones_bryce_tyburski_com_name'), '/@')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Network/dnszones', parameters('dnszones_bryce_tyburski_com_name'))]"
+            ],
+            "properties": {
+                "TTL": 172800,
+                "NSRecords": [
+                    {
+                        "nsdname": "ns1-36.azure-dns.com."
+                    },
+                    {
+                        "nsdname": "ns2-36.azure-dns.net."
+                    },
+                    {
+                        "nsdname": "ns3-36.azure-dns.org."
+                    },
+                    {
+                        "nsdname": "ns4-36.azure-dns.info."
+                    }
+                ],
+                "targetResource": {},
+                "trafficManagementProfile": {}
+            }
+        },
+        {
+            "type": "Microsoft.Network/dnszones/SOA",
+            "apiVersion": "2023-07-01-preview",
+            "name": "[concat(parameters('dnszones_brycetyburski_com_name'), '/@')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Network/dnszones', parameters('dnszones_brycetyburski_com_name'))]"
+            ],
+            "properties": {
+                "TTL": 3600,
+                "SOARecord": {
+                    "email": "azuredns-hostmaster.microsoft.com",
+                    "expireTime": 2419200,
+                    "host": "ns1-32.azure-dns.com.",
+                    "minimumTTL": 300,
+                    "refreshTime": 3600,
+                    "retryTime": 300,
+                    "serialNumber": 1
+                },
+                "targetResource": {},
+                "trafficManagementProfile": {}
+            }
+        },
+        {
+            "type": "Microsoft.Network/dnszones/SOA",
+            "apiVersion": "2023-07-01-preview",
+            "name": "[concat(parameters('dnszones_bryce_tyburski_com_name'), '/@')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Network/dnszones', parameters('dnszones_bryce_tyburski_com_name'))]"
+            ],
+            "properties": {
+                "TTL": 3600,
+                "SOARecord": {
+                    "email": "azuredns-hostmaster.microsoft.com",
+                    "expireTime": 2419200,
+                    "host": "ns1-36.azure-dns.com.",
+                    "minimumTTL": 300,
+                    "refreshTime": 3600,
+                    "retryTime": 300,
+                    "serialNumber": 1
+                },
+                "targetResource": {},
+                "trafficManagementProfile": {}
+            }
+        },
+        {
+            "type": "Microsoft.Storage/storageAccounts/blobServices",
+            "apiVersion": "2025-06-01",
+            "name": "[concat(parameters('storageAccounts_crpstorageaccount001_name'), '/default')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Storage/storageAccounts', parameters('storageAccounts_crpstorageaccount001_name'))]"
+            ],
+            "sku": {
+                "name": "Standard_RAGRS",
+                "tier": "Standard"
+            },
+            "properties": {
+                "changeFeed": {
+                    "enabled": false
+                },
+                "restorePolicy": {
+                    "enabled": false
+                },
+                "containerDeleteRetentionPolicy": {
+                    "enabled": true,
+                    "days": 7
+                },
+                "cors": {
+                    "corsRules": []
+                },
+                "deleteRetentionPolicy": {
+                    "allowPermanentDelete": false,
+                    "enabled": true,
+                    "days": 7
+                },
+                "isVersioningEnabled": false
+            }
+        },
+        {
+            "type": "Microsoft.Storage/storageAccounts/fileServices",
+            "apiVersion": "2025-06-01",
+            "name": "[concat(parameters('storageAccounts_crpstorageaccount001_name'), '/default')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Storage/storageAccounts', parameters('storageAccounts_crpstorageaccount001_name'))]"
+            ],
+            "sku": {
+                "name": "Standard_RAGRS",
+                "tier": "Standard"
+            },
+            "properties": {
+                "protocolSettings": {
+                    "smb": {}
+                },
+                "cors": {
+                    "corsRules": []
+                },
+                "shareDeleteRetentionPolicy": {
+                    "enabled": true,
+                    "days": 7
+                }
+            }
+        },
+        {
+            "type": "Microsoft.Storage/storageAccounts/queueServices",
+            "apiVersion": "2025-06-01",
+            "name": "[concat(parameters('storageAccounts_crpstorageaccount001_name'), '/default')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Storage/storageAccounts', parameters('storageAccounts_crpstorageaccount001_name'))]"
+            ],
+            "properties": {
+                "cors": {
+                    "corsRules": []
+                }
+            }
+        },
+        {
+            "type": "Microsoft.Storage/storageAccounts/tableServices",
+            "apiVersion": "2025-06-01",
+            "name": "[concat(parameters('storageAccounts_crpstorageaccount001_name'), '/default')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Storage/storageAccounts', parameters('storageAccounts_crpstorageaccount001_name'))]"
+            ],
+            "properties": {
+                "cors": {
+                    "corsRules": []
+                }
+            }
+        },
+        {
+            "type": "Microsoft.Web/sites/basicPublishingCredentialsPolicies",
+            "apiVersion": "2024-11-01",
+            "name": "[concat(parameters('sites_brycetyburski_resume_func_name'), '/ftp')]",
+            "location": "East US",
+            "dependsOn": [
+                "[resourceId('Microsoft.Web/sites', parameters('sites_brycetyburski_resume_func_name'))]"
+            ],
+            "tags": {
+                "project": "cloud-resume",
+                "environment": "dev",
+                "resource": "function-app"
+            },
+            "properties": {
+                "allow": false
+            }
+        },
+        {
+            "type": "Microsoft.Web/sites/basicPublishingCredentialsPolicies",
+            "apiVersion": "2024-11-01",
+            "name": "[concat(parameters('sites_brycetyburski_resume_func_name'), '/scm')]",
+            "location": "East US",
+            "dependsOn": [
+                "[resourceId('Microsoft.Web/sites', parameters('sites_brycetyburski_resume_func_name'))]"
+            ],
+            "tags": {
+                "project": "cloud-resume",
+                "environment": "dev",
+                "resource": "function-app"
+            },
+            "properties": {
+                "allow": false
+            }
+        },
+        {
+            "type": "Microsoft.Web/sites/config",
+            "apiVersion": "2024-11-01",
+            "name": "[concat(parameters('sites_brycetyburski_resume_func_name'), '/web')]",
+            "location": "East US",
+            "dependsOn": [
+                "[resourceId('Microsoft.Web/sites', parameters('sites_brycetyburski_resume_func_name'))]"
+            ],
+            "tags": {
+                "project": "cloud-resume",
+                "environment": "dev",
+                "resource": "function-app"
+            },
+            "properties": {
+                "numberOfWorkers": 1,
+                "defaultDocuments": [
+                    "Default.htm",
+                    "Default.html",
+                    "Default.asp",
+                    "index.htm",
+                    "index.html",
+                    "iisstart.htm",
+                    "default.aspx",
+                    "index.php"
+                ],
+                "netFrameworkVersion": "v4.0",
+                "requestTracingEnabled": false,
+                "remoteDebuggingEnabled": false,
+                "httpLoggingEnabled": false,
+                "acrUseManagedIdentityCreds": false,
+                "logsDirectorySizeLimit": 35,
+                "detailedErrorLoggingEnabled": false,
+                "publishingUsername": "REDACTED",
+                "scmType": "None",
+                "use32BitWorkerProcess": false,
+                "webSocketsEnabled": false,
+                "alwaysOn": false,
+                "managedPipelineMode": "Integrated",
+                "virtualApplications": [
+                    {
+                        "virtualPath": "/",
+                        "physicalPath": "site\\wwwroot",
+                        "preloadEnabled": false
+                    }
+                ],
+                "loadBalancing": "LeastRequests",
+                "experiments": {
+                    "rampUpRules": []
+                },
+                "autoHealEnabled": false,
+                "vnetRouteAllEnabled": false,
+                "vnetPrivatePortsCount": 0,
+                "publicNetworkAccess": "Enabled",
+                "cors": {
+                    "allowedOrigins": [
+                        "https://portal.azure.com"
+                    ],
+                    "supportCredentials": false
+                },
+                "localMySqlEnabled": false,
+                "ipSecurityRestrictions": [
+                    {
+                        "ipAddress": "Any",
+                        "action": "Allow",
+                        "priority": 2147483647,
+                        "name": "Allow all",
+                        "description": "Allow all access"
+                    }
+                ],
+                "scmIpSecurityRestrictions": [
+                    {
+                        "ipAddress": "Any",
+                        "action": "Allow",
+                        "priority": 2147483647,
+                        "name": "Allow all",
+                        "description": "Allow all access"
+                    }
+                ],
+                "scmIpSecurityRestrictionsUseMain": false,
+                "http20Enabled": false,
+                "minTlsVersion": "1.2",
+                "scmMinTlsVersion": "1.2",
+                "ftpsState": "FtpsOnly",
+                "preWarmedInstanceCount": 0,
+                "functionAppScaleLimit": 100,
+                "functionsRuntimeScaleMonitoringEnabled": false,
+                "minimumElasticInstanceCount": 0,
+                "azureStorageAccounts": {},
+                "http20ProxyFlag": 0
+            }
+        },
+        {
+            "type": "Microsoft.Web/sites/deployments",
+            "apiVersion": "2024-11-01",
+            "name": "[concat(parameters('sites_brycetyburski_resume_func_name'), '/af6d7055-3e2a-4f21-957e-2ca96b3319a4')]",
+            "location": "East US",
+            "dependsOn": [
+                "[resourceId('Microsoft.Web/sites', parameters('sites_brycetyburski_resume_func_name'))]"
+            ],
+            "properties": {
+                "status": 4,
+                "deployer": "ms-azuretools-vscode",
+                "start_time": "2026-03-29T15:53:48.8897969Z",
+                "end_time": "2026-03-29T15:54:59.194068Z",
+                "active": true
+            }
+        },
+        {
+            "type": "Microsoft.Web/sites/functions",
+            "apiVersion": "2024-11-01",
+            "name": "[concat(parameters('sites_brycetyburski_resume_func_name'), '/visitorcounter')]",
+            "location": "East US",
+            "dependsOn": [
+                "[resourceId('Microsoft.Web/sites', parameters('sites_brycetyburski_resume_func_name'))]"
+            ],
+            "properties": {
+                "script_href": "https://brycetyburski-resume-func-frecb5dpbqach3dp.eastus-01.azurewebsites.net/admin/vfs/home/site/wwwroot/function_app.py",
+                "test_data_href": "https://brycetyburski-resume-func-frecb5dpbqach3dp.eastus-01.azurewebsites.net/admin/vfs/tmp/FunctionsData/visitorcounter.dat",
+                "href": "https://brycetyburski-resume-func-frecb5dpbqach3dp.eastus-01.azurewebsites.net/admin/functions/visitorcounter",
+                "config": {
+                    "name": "visitorcounter",
+                    "entryPoint": "visitorcounter",
+                    "scriptFile": "function_app.py",
+                    "language": "python",
+                    "functionDirectory": "/home/site/wwwroot",
+                    "bindings": [
+                        {
+                            "direction": "IN",
+                            "type": "httpTrigger",
+                            "name": "req",
+                            "authLevel": "ANONYMOUS",
+                            "route": "visitorcounter"
+                        },
+                        {
+                            "direction": "OUT",
+                            "type": "http",
+                            "name": "$return"
+                        }
+                    ]
+                },
+                "invoke_url_template": "https://brycetyburski-resume-func-frecb5dpbqach3dp.eastus-01.azurewebsites.net/api/visitorcounter",
+                "language": "python",
+                "isDisabled": false
+            }
+        },
+        {
+            "type": "Microsoft.Web/sites/hostNameBindings",
+            "apiVersion": "2024-11-01",
+            "name": "[concat(parameters('sites_brycetyburski_resume_func_name'), '/', parameters('sites_brycetyburski_resume_func_name'), '-frecb5dpbqach3dp.eastus-01.azurewebsites.net')]",
+            "location": "East US",
+            "dependsOn": [
+                "[resourceId('Microsoft.Web/sites', parameters('sites_brycetyburski_resume_func_name'))]"
+            ],
+            "properties": {
+                "siteName": "brycetyburski-resume-func",
+                "hostNameType": "Verified"
+            }
+        },
+        {
+            "type": "Microsoft.Cdn/profiles/endpoints/customdomains",
+            "apiVersion": "2025-09-01-preview",
+            "name": "[concat(parameters('profiles_cdn_profile_crp_name'), '/cdn-endpoint-crp/www-bryce-tyburski-com')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Cdn/profiles/endpoints', parameters('profiles_cdn_profile_crp_name'), 'cdn-endpoint-crp')]",
+                "[resourceId('Microsoft.Cdn/profiles', parameters('profiles_cdn_profile_crp_name'))]"
+            ],
+            "properties": {
+                "hostName": "www.bryce-tyburski.com"
+            }
+        },
+        {
+            "type": "Microsoft.Cdn/profiles/endpoints/origins",
+            "apiVersion": "2025-09-01-preview",
+            "name": "[concat(parameters('profiles_cdn_profile_crp_name'), '/cdn-endpoint-crp/default-origin-98ef747a')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Cdn/profiles/endpoints', parameters('profiles_cdn_profile_crp_name'), 'cdn-endpoint-crp')]",
+                "[resourceId('Microsoft.Cdn/profiles', parameters('profiles_cdn_profile_crp_name'))]"
+            ],
+            "properties": {
+                "hostName": "crpstorageaccount001.z13.web.core.windows.net",
+                "priority": 1,
+                "weight": 1000,
+                "enabled": true
+            }
+        },
+        {
+            "type": "Microsoft.Network/dnszones/CNAME",
+            "apiVersion": "2023-07-01-preview",
+            "name": "[concat(parameters('dnszones_brycetyburski_com_name'), '/www')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Network/dnszones', parameters('dnszones_brycetyburski_com_name'))]",
+                "[resourceId('Microsoft.Cdn/profiles/endpoints', parameters('profiles_cdn_profile_crp_name'), 'cdn-endpoint-crp')]"
+            ],
+            "properties": {
+                "TTL": 3600,
+                "targetResource": {
+                    "id": "[resourceId('Microsoft.Cdn/profiles/endpoints', parameters('profiles_cdn_profile_crp_name'), 'cdn-endpoint-crp')]"
+                },
+                "trafficManagementProfile": {}
+            }
+        },
+        {
+            "type": "Microsoft.Storage/storageAccounts/blobServices/containers",
+            "apiVersion": "2025-06-01",
+            "name": "[concat(parameters('storageAccounts_crpstorageaccount001_name'), '/default/$web')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Storage/storageAccounts/blobServices', parameters('storageAccounts_crpstorageaccount001_name'), 'default')]",
+                "[resourceId('Microsoft.Storage/storageAccounts', parameters('storageAccounts_crpstorageaccount001_name'))]"
+            ],
+            "properties": {
+                "immutableStorageWithVersioning": {
+                    "enabled": false
+                },
+                "defaultEncryptionScope": "$account-encryption-key",
+                "denyEncryptionScopeOverride": false,
+                "publicAccess": "None"
+            }
+        },
+        {
+            "type": "Microsoft.Storage/storageAccounts/blobServices/containers",
+            "apiVersion": "2025-06-01",
+            "name": "[concat(parameters('storageAccounts_crpstorageaccount001_name'), '/default/app-package-brycetyburski-resume-func-309e21b')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Storage/storageAccounts/blobServices', parameters('storageAccounts_crpstorageaccount001_name'), 'default')]",
+                "[resourceId('Microsoft.Storage/storageAccounts', parameters('storageAccounts_crpstorageaccount001_name'))]"
+            ],
+            "properties": {
+                "immutableStorageWithVersioning": {
+                    "enabled": false
+                },
+                "defaultEncryptionScope": "$account-encryption-key",
+                "denyEncryptionScopeOverride": false,
+                "publicAccess": "None"
+            }
+        },
+        {
+            "type": "Microsoft.Storage/storageAccounts/blobServices/containers",
+            "apiVersion": "2025-06-01",
+            "name": "[concat(parameters('storageAccounts_crpstorageaccount001_name'), '/default/azure-webjobs-hosts')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Storage/storageAccounts/blobServices', parameters('storageAccounts_crpstorageaccount001_name'), 'default')]",
+                "[resourceId('Microsoft.Storage/storageAccounts', parameters('storageAccounts_crpstorageaccount001_name'))]"
+            ],
+            "properties": {
+                "immutableStorageWithVersioning": {
+                    "enabled": false
+                },
+                "defaultEncryptionScope": "$account-encryption-key",
+                "denyEncryptionScopeOverride": false,
+                "publicAccess": "None"
+            }
+        },
+        {
+            "type": "Microsoft.Storage/storageAccounts/blobServices/containers",
+            "apiVersion": "2025-06-01",
+            "name": "[concat(parameters('storageAccounts_crpstorageaccount001_name'), '/default/azure-webjobs-secrets')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Storage/storageAccounts/blobServices', parameters('storageAccounts_crpstorageaccount001_name'), 'default')]",
+                "[resourceId('Microsoft.Storage/storageAccounts', parameters('storageAccounts_crpstorageaccount001_name'))]"
+            ],
+            "properties": {
+                "immutableStorageWithVersioning": {
+                    "enabled": false
+                },
+                "defaultEncryptionScope": "$account-encryption-key",
+                "denyEncryptionScopeOverride": false,
+                "publicAccess": "None"
+            }
+        },
+        {
+            "type": "Microsoft.Web/sites",
+            "apiVersion": "2024-11-01",
+            "name": "[parameters('sites_brycetyburski_resume_func_name')]",
+            "location": "East US",
+            "dependsOn": [
+                "[resourceId('Microsoft.Web/serverfarms', parameters('serverfarms_ASP_CRPRG_b01e_name'))]",
+                "[resourceId('Microsoft.Storage/StorageAccounts', parameters('storageAccounts_crpstorageaccount001_name'))]"
+            ],
+            "tags": {
+                "project": "cloud-resume",
+                "environment": "dev",
+                "resource": "function-app"
+            },
+            "kind": "functionapp,linux",
+            "properties": {
+                "enabled": true,
+                "hostNameSslStates": [
+                    {
+                        "name": "[concat(parameters('sites_brycetyburski_resume_func_name'), '-frecb5dpbqach3dp.eastus-01.azurewebsites.net')]",
+                        "sslState": "Disabled",
+                        "hostType": "Standard"
+                    },
+                    {
+                        "name": "[concat(parameters('sites_brycetyburski_resume_func_name'), '-frecb5dpbqach3dp.scm.eastus-01.azurewebsites.net')]",
+                        "sslState": "Disabled",
+                        "hostType": "Repository"
+                    }
+                ],
+                "serverFarmId": "[resourceId('Microsoft.Web/serverfarms', parameters('serverfarms_ASP_CRPRG_b01e_name'))]",
+                "reserved": true,
+                "isXenon": false,
+                "hyperV": false,
+                "dnsConfiguration": {},
+                "outboundVnetRouting": {
+                    "allTraffic": false,
+                    "applicationTraffic": false,
+                    "contentShareTraffic": false,
+                    "imagePullTraffic": false,
+                    "backupRestoreTraffic": false
+                },
+                "siteConfig": {
+                    "numberOfWorkers": 1,
+                    "acrUseManagedIdentityCreds": false,
+                    "alwaysOn": false,
+                    "http20Enabled": false,
+                    "functionAppScaleLimit": 100,
+                    "minimumElasticInstanceCount": 0
+                },
+                "functionAppConfig": {
+                    "deployment": {
+                        "storage": {
+                            "type": "blobcontainer",
+                            "value": "[concat('https://', parameters('storageAccounts_crpstorageaccount001_name'), concat('.blob.core.windows.net/app-package-', parameters('sites_brycetyburski_resume_func_name'), '-309e21b'))]",
+                            "authentication": {
+                                "type": "storageaccountconnectionstring",
+                                "storageAccountConnectionStringName": "DEPLOYMENT_STORAGE_CONNECTION_STRING"
+                            }
+                        }
+                    },
+                    "runtime": {
+                        "name": "python",
+                        "version": "3.11"
+                    },
+                    "scaleAndConcurrency": {
+                        "maximumInstanceCount": 100,
+                        "instanceMemoryMB": 2048
+                    }
+                },
+                "scmSiteAlsoStopped": false,
+                "clientAffinityEnabled": false,
+                "clientAffinityProxyEnabled": false,
+                "clientCertEnabled": false,
+                "clientCertMode": "Required",
+                "hostNamesDisabled": false,
+                "ipMode": "IPv4",
+                "customDomainVerificationId": "D00CE07CC983B47509F0D67AA9DEB4BD7DC867CD2A91A2849A0F35FF1FBA408C",
+                "containerSize": 1536,
+                "dailyMemoryTimeQuota": 0,
+                "httpsOnly": true,
+                "endToEndEncryptionEnabled": false,
+                "redundancyMode": "None",
+                "publicNetworkAccess": "Enabled",
+                "storageAccountRequired": false,
+                "keyVaultReferenceIdentity": "SystemAssigned",
+                "autoGeneratedDomainNameLabelScope": "TenantReuse"
+            }
+        }
+    ]
+}
